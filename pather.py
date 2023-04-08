@@ -47,9 +47,9 @@ def path_finder(url, wordlist_path, max_workers=10):
                     if status_code >= 200 and status_code < 300:
                         print(f"\033[92m[+]\033[0m {result[0].ljust(40)} \033[92m[{status_code}]\033[0m")
                     elif status_code >= 400 and status_code < 500:
-                        print(f"\033[94m[-]\033[0m {result[0].ljust(40)} \033[94m[{status_code}]\033[0m")
-                    else:
                         print(f"\033[91m[-]\033[0m {result[0].ljust(40)} \033[91m[{status_code}]\033[0m")
+                    else:
+                        print(f"\033[94m[-]\033[0m {result[0].ljust(40)} \033[94m[{status_code}]\033[0m")
                 else:
                     status_code, location = result[1]
                     print(f"\033[93m[!]\033[0m {result[0].ljust(40)} \033[93m[{status_code}]      >>      {location}\033[0m")
