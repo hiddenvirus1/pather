@@ -76,8 +76,8 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--url', help='Target URL', required=True)
     parser.add_argument('-w', '--wordlist', help='Path to wordlist', required=True)
     parser.add_argument('-t', '--threads', help='Maximum number of concurrent workers', default=10, type=int)
-    parser.add_argument('-mc', '--match-code', help='Filter results by status code', type=str)
-    parser.add_argument('-fc', '--filter-code', help='Hide results by status code', type=str)
+    parser.add_argument('-mc', '--match-code', help='Filter results by status code (default: 1xx,2xx,3xx,4xx,5xx)', type=str)
+    parser.add_argument('-fc', '--filter-code', help='Hide results by status code (default: None)', type=str)
     parser.add_argument('-o', '--output', type=str, help='output file path')
     args = parser.parse_args()
 
