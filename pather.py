@@ -1,8 +1,6 @@
 import argparse
 import concurrent.futures
 import requests
-import sys
-
 
 def process_word(word, url):
     if '/' in word:
@@ -31,7 +29,7 @@ def process_word(word, url):
         return full_url, status_code
 
 
-def path_finder(url, wordlist_path, max_workers=10):
+def path_finder(url, wordlist_path, max_workers=10, fc=None, mc=None):
     if not url.startswith('http://') and not url.startswith('https://'):
         url = 'https://' + url.rstrip('/')
     try:
@@ -44,6 +42,10 @@ def path_finder(url, wordlist_path, max_workers=10):
                     continue
                 if isinstance(result[1], int):
                     status_code = result[1]
+                    if fc is not None and status_code in fc:
+                        continue
+                    if mc is not None and status_code not in mc:
+                        continue
                     if status_code >= 200 and status_code < 300:
                         print(f"\033[92m[+]\033[0m {result[0].ljust(40)} \033[92m[{status_code}]\033[0m")
                     elif status_code >= 400 and status_code < 500:
@@ -52,6 +54,10 @@ def path_finder(url, wordlist_path, max_workers=10):
                         print(f"\033[94m[-]\033[0m {result[0].ljust(40)} \033[94m[{status_code}]\033[0m")
                 else:
                     status_code, location = result[1]
+                    if fc is not None and status_code in fc:
+                        continue
+                    if mc is not None and status_code not in mc:
+                        continue
                     print(f"\033[93m[!]\033[0m {result[0].ljust(40)} \033[93m[{status_code}]      >>      {location}\033[0m")
     except KeyboardInterrupt:
         print('\n\033[91m[!]\033[0m Keyboard Interrupted! Terminating threads...')
@@ -62,16 +68,20 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--url', help='Target URL', required=True)
     parser.add_argument('-w', '--wordlist', help='Path to wordlist', required=True)
     parser.add_argument('-t', '--threads', help='Maximum number of concurrent workers', default=10, type=int)
+    parser.add_argument('-fc', '--filter-code', help='Hide results by status code', type=str)
+    parser.add_argument('-mc', '--match-code', help='Filter results by status code', type=str)
     args = parser.parse_args()
 
     url = args.url
     wordlist_path = args.wordlist
     max_workers = args.threads
+    fc = [int(x) for x in args.filter_code.split(',')] if args.filter_code else None
+    mc = [int(x) for x in args.match_code.split(',')] if args.match_code else None
 
     if 'FUZZ' not in url:
         print("\033[91m[!]\033[0m The URL must contain the string FUZZ")
         sys.exit(1)
 
-    path_finder(url, wordlist_path, max_workers)
+    path_finder(url, wordlist_path, max_workers, fc, mc)
 
     print("\n\033[92m[+]\033[0m Exit")
