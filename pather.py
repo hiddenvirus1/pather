@@ -76,21 +76,21 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--url', help='Target URL', required=True)
     parser.add_argument('-w', '--wordlist', help='Path to wordlist', required=True)
     parser.add_argument('-t', '--threads', help='Maximum number of concurrent workers', default=10, type=int)
-    parser.add_argument('-fc', '--filter-code', help='Hide results by status code', type=str)
     parser.add_argument('-mc', '--match-code', help='Filter results by status code', type=str)
+    parser.add_argument('-fc', '--filter-code', help='Hide results by status code', type=str)
     parser.add_argument('-o', '--output', type=str, help='output file path')
     args = parser.parse_args()
 
     url = args.url
     wordlist_path = args.wordlist
     max_workers = args.threads
-    fc = [int(x) for x in args.filter_code.split(',')] if args.filter_code else None
     mc = [int(x) for x in args.match_code.split(',')] if args.match_code else None
+    fc = [int(x) for x in args.filter_code.split(',')] if args.filter_code else None
     output_file = args.output
 
     if 'FUZZ' not in url:
         print("\033[91m[!]\033[0m The URL must contain the string FUZZ")
-        sys.exit(1)
+        exit()
 
     path_finder(url, wordlist_path, max_workers, fc, mc, output_file)
 
