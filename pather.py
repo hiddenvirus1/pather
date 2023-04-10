@@ -2,18 +2,18 @@ import argparse
 import concurrent.futures
 import requests
 
-def process_word(word, url):
+def process_word(word, url, proxies=None):
     if '/' in word:
         subdomain, path = word.split('/', 1)
         full_url = url.replace('FUZZ', subdomain).rstrip('/') + '/' + path
     else:
         full_url = url.replace('FUZZ', word)
     try:
-        response = requests.get(full_url, allow_redirects=False, timeout=5)
+        response = requests.get(full_url, allow_redirects=False, timeout=5, proxies=proxies)
     except requests.exceptions.SSLError:
         full_url = full_url.replace('https://', 'http://')
         try:
-            response = requests.get(full_url, allow_redirects=False, timeout=5)
+            response = requests.get(full_url, allow_redirects=False, timeout=5, proxies=proxies)
         except requests.exceptions.RequestException:
             return full_url, None
     except requests.exceptions.RequestException:
@@ -29,13 +29,13 @@ def process_word(word, url):
         return full_url, status_code
 
 
-def path_finder(url, wordlist_path, max_workers=10, fc=None, mc=None, output_file=None):
+def path_finder(url, wordlist_path, max_workers=10, fc=None, mc=None, output_file=None, proxies=None):
     if not url.startswith('http://') and not url.startswith('https://'):
         url = 'https://' + url.rstrip('/')
     try:
         with open(wordlist_path, 'r') as wordlist, concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             words = [word.strip() for word in wordlist]
-            futures = [executor.submit(process_word, word, url) for word in words]
+            futures = [executor.submit(process_word, word, url, proxies) for word in words]
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 if result[1] is None:
@@ -70,6 +70,9 @@ def path_finder(url, wordlist_path, max_workers=10, fc=None, mc=None, output_fil
     except KeyboardInterrupt:
         print('\n[!] Keyboard Interrupted! Terminating threads...')
         executor.shutdown(wait=False)
+        executor._threads.clear()
+        concurrent.futures.thread._threads_queues.clear()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Website path finder')
@@ -79,6 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('-mc', '--match-code', help='Filter results by status code (default: 1xx,2xx,3xx,4xx,5xx)', type=str)
     parser.add_argument('-fc', '--filter-code', help='Hide results by status code (default: None)', type=str)
     parser.add_argument('-o', '--output', type=str, help='output file path')
+    parser.add_argument('-x', '--proxy', type=str, help='HTTP proxy address (e.g. 127.0.0.1:8080)')
     args = parser.parse_args()
 
     url = args.url
@@ -87,11 +91,12 @@ if __name__ == '__main__':
     mc = [int(x) for x in args.match_code.split(',')] if args.match_code else None
     fc = [int(x) for x in args.filter_code.split(',')] if args.filter_code else None
     output_file = args.output
+    proxies = {'http': args.proxy, 'https': args.proxy} if args.proxy else None
 
     if 'FUZZ' not in url:
         print("\033[91m[!]\033[0m The URL must contain the string FUZZ")
         exit()
 
-    path_finder(url, wordlist_path, max_workers, fc, mc, output_file)
-
+    path_finder(url, wordlist_path, max_workers, fc, mc, output_file, proxies)
+    
     print("\n\033[92m[+]\033[0m Exit")
