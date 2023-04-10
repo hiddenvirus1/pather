@@ -1,5 +1,5 @@
 # pather
-> Subdomain and Path Bruteforce
+> Subdomain and Path Bruteforcer
 ### Usage:
 ```Subdomain Bruteforce```
 ```
