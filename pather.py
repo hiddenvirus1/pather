@@ -68,14 +68,14 @@ def path_finder(url, wordlist_path, max_workers=10, fc=None, mc=None, output_fil
                     with open(output_file, 'a') as f:
                         f.write(f"{message}\n")
     except KeyboardInterrupt:
-        print('\n[!] Keyboard Interrupted! Terminating threads...')
+        print("\n\033[92m[+]\033[0m Exit")
         executor.shutdown(wait=False)
         executor._threads.clear()
         concurrent.futures.thread._threads_queues.clear()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Website path finder')
+    parser = argparse.ArgumentParser(description='Subdomain and Path finder')
     parser.add_argument('-u', '--url', help='Target URL', required=True)
     parser.add_argument('-w', '--wordlist', help='Path to wordlist', required=True)
     parser.add_argument('-t', '--threads', help='Maximum number of concurrent workers', default=10, type=int)
@@ -98,5 +98,3 @@ if __name__ == '__main__':
         exit()
 
     path_finder(url, wordlist_path, max_workers, fc, mc, output_file, proxies)
-    
-    print("\n\033[92m[+]\033[0m Exit")
